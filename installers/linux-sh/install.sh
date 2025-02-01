@@ -44,7 +44,7 @@ if [ -z "$VERSION" ]; then
     exit 1
 fi
 
-ASSET_FILENAME="${ASSET_NAME}${VERSION}.tar.gz"
+ASSET_FILENAME="${ASSET_NAME}-${VERSION}.tar.gz"
 
 echo "Downloading moonlight $BRANCH $VERSION ($ASSET_FILENAME) from GitHub..."
 
