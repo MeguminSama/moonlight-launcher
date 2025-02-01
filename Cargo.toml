@@ -1,0 +1,53 @@
+[workspace]
+members = ["crates/*"]
+
+[package]
+name = "moonlight-launcher"
+description = "An easy-to-use launcher for moonlight"
+authors = ["Rie Takahashi <megumin@megu.dev>"]
+version = "0.1.0"
+license = "GPL-3.0"
+homepage = "https://github.com/meguminsama/moonlight-launcher"
+repository = "https://github.com/meguminsama/moonlight-launcher"
+keywords = ["moonlight", "discord", "modding", "electron", "injector"]
+edition = "2021"
+
+[dependencies]
+dirs = "6.0.0"
+electron-hook = "0.2.0-beta.14"
+flate2 = "1.0.35"
+tar = "0.4.43"
+tinyjson = "2.5.1"
+tokio = { version = "1.43.0", features = ["macros", "rt-multi-thread"] }
+ureq = "3.0.3"
+
+[target.'cfg(windows)'.dependencies]
+winapi = { version = "0.3.9", default-features = false, features = [
+	"combaseapi",
+	"knownfolders",
+	"shlobj",
+	"winerror",
+] }
+
+[target.'cfg(unix)'.dependencies]
+dialog = "0.3.0"
+
+[lib]
+name = "moonlight_launcher"
+path = "src/lib.rs"
+crate-type = ["cdylib", "rlib"]
+
+[[bin]]
+name = "moonlight-stable"
+path = "src/bin/stable.rs"
+
+[[bin]]
+name = "moonlight-ptb"
+path = "src/bin/ptb.rs"
+
+[[bin]]
+name = "moonlight-canary"
+path = "src/bin/canary.rs"
+
+[build-dependencies]
+winresource = { version = "0.1.19", default-features = false }
