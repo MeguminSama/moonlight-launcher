@@ -33,10 +33,12 @@ pub fn get_discord(branch: DiscordBranch) -> Option<PathBuf> {
 
 #[cfg(target_os = "linux")]
 pub fn get_discord(branch: DiscordBranch) -> Option<PathBuf> {
+    use std::process::Command;
+
     let local_share = dirs::data_local_dir()?;
 
     // Try non-flatpak installs first.
-    let (name, dvm_branch) = match branch {
+    let (name, lower_name) = match branch {
         DiscordBranch::Stable => ("Discord", "stable"),
         DiscordBranch::PTB => ("DiscordPTB", "ptb"),
         DiscordBranch::Canary => ("DiscordCanary", "canary"),
@@ -51,14 +53,30 @@ pub fn get_discord(branch: DiscordBranch) -> Option<PathBuf> {
     }
 
     // If that doesn't work, try $HOME/.dvm/branches
+    let executable = dirs::home_dir()?.join(format!(".dvm/branches/{lower_name}/{name}/{name}"));
+    if executable.is_file() {
+        return Some(executable);
+    }
 
-    let executable = dirs::home_dir()?.join(format!(".dvm/branches/{dvm_branch}/{name}/{name}"));
-
+    let executable = PathBuf::from(format!("/usr/bin/discord-{lower_name}"));
     if executable.is_file() {
         return Some(executable);
     }
 
     // FIXME: Flatpak Support
+
+    // As a last resort, try checking if it's in PATH
+    let command_output = Command::new("sh")
+        .arg("-c")
+        .arg(format!("command -v discord-{lower_name}"))
+        .output()
+        .ok()?;
+
+    if command_output.status.success() {
+        let path = String::from_utf8(command_output.stdout).ok()?;
+        let path = path.trim(); // Remove any trailing newline
+        return Some(PathBuf::from(path));
+    }
 
     None
 }
