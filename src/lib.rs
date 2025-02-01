@@ -11,6 +11,7 @@ pub mod windows;
 #[cfg(windows)]
 pub use windows::*;
 
+use clap::Parser;
 use discord::DiscordBranch;
 use std::collections::HashMap;
 use tinyjson::JsonValue;
@@ -26,7 +27,24 @@ struct GithubReleaseAsset {
     pub browser_download_url: String,
 }
 
+#[derive(clap::Parser, Debug)]
+struct Args {
+    /// To use a local instance of the mod, pass the path to the mod entrypoint.
+    ///
+    /// e.g. `--local "C:\\Users\\megu\\moonlight-mod\\dist\\injector.js"`
+    #[clap(short, long)]
+    pub local: Option<String>,
+
+    /// Optional launch arguments to pass to the Discord executable
+    ///
+    /// e.g. `-- --start-minimized --enable-blink-features=MiddleClickAutoscroll`
+    #[clap(allow_hyphen_values = true, last = true)]
+    pub launch_args: Vec<String>,
+}
+
 pub async fn launch(instance_id: &str, branch: DiscordBranch, display_name: &str) {
+    let args = Args::parse();
+
     let Some(discord_dir) = discord::get_discord(branch) else {
         let title = format!("No {display_name} installation found!");
         let message = format!(
@@ -46,12 +64,6 @@ pub async fn launch(instance_id: &str, branch: DiscordBranch, display_name: &str
         return;
     };
 
-    let assets_dir = asset_cache_dir().unwrap();
-
-    // We can usually attempt to run Discord even if the downloads fail...
-    // TODO: Make this more robust. Maybe specific error reasons so we can determine if it's safe to continue.
-    let _ = download_assets().await;
-
     // TODO: This is windows-specific logic. On linux, finding the library can be much more complicated.
     #[cfg(unix)]
     let library_name = format!("lib{}", constants::LIBRARY);
@@ -64,11 +76,22 @@ pub async fn launch(instance_id: &str, branch: DiscordBranch, display_name: &str
         .to_string_lossy()
         .to_string();
 
-    let mod_entrypoint = assets_dir.join(constants::MOD_ENTRYPOINT);
-    let mod_entrypoint = mod_entrypoint
-        .to_string_lossy()
-        .to_string()
-        .replace("\\", "\\\\");
+    let assets_dir = asset_cache_dir().unwrap();
+
+    // If `--local` is provided, use a local build. Otherwise, download assets.
+    let mod_entrypoint = if let Some(local_path) = args.local {
+        local_path
+    } else {
+        // We can usually attempt to run Discord even if the downloads fail...
+        // TODO: Make this more robust. Maybe specific error reasons so we can determine if it's safe to continue.
+        let _ = download_assets().await;
+
+        assets_dir
+            .join(constants::MOD_ENTRYPOINT)
+            .to_string_lossy()
+            .replace("\\", "\\\\")
+            .to_string()
+    };
 
     let branch_name = match branch {
         DiscordBranch::Stable => "stable",
@@ -88,7 +111,14 @@ pub async fn launch(instance_id: &str, branch: DiscordBranch, display_name: &str
     let discord_dir = discord_dir.to_string_lossy().to_string();
     let asar_path = asar.to_string_lossy().to_string();
 
-    electron_hook::launch(&discord_dir, &library_name, &asar_path, vec![], false).unwrap();
+    electron_hook::launch(
+        &discord_dir,
+        &library_name,
+        &asar_path,
+        args.launch_args,
+        false,
+    )
+    .unwrap();
 }
 
 async fn download_assets() -> Option<()> {
