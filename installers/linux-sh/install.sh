@@ -11,6 +11,13 @@ else
     exit 1
 fi
 
+ACTION="install"
+
+if [ "$1" = "--uninstall" ]; then
+    ACTION="uninstall"
+    shift
+fi
+
 BRANCH="${1:-stable}"
 
 case "$BRANCH" in
@@ -27,6 +34,48 @@ GITHUB_ORG="MeguminSama"
 REPO_NAME="moonlight-launcher"
 
 ASSET_NAME="moonlight-$BRANCH"
+
+if [ "$ACTION" = "uninstall" ]; then
+    echo "Uninstalling moonlight $BRANCH..."
+
+    # Remove the binary
+    $PRIV_ESC rm -f "/usr/bin/moonlight-$BRANCH"
+
+    # Check if all three binaries are deleted
+    if [ ! -f "/usr/bin/moonlight-stable" ] && \
+       [ ! -f "/usr/bin/moonlight-canary" ] && \
+       [ ! -f "/usr/bin/moonlight-ptb" ]; then
+        # Remove the shared library if all binaries are gone
+        $PRIV_ESC rm -f "/usr/lib/libmoonlight_launcher.so"
+        $PRIV_ESC ldconfig /usr/lib
+    fi
+
+    # Remove icons
+    HICOLOR="/usr/share/icons/hicolor"
+    $PRIV_ESC rm -f "$HICOLOR/16x16/apps/moonlight-$BRANCH.png"
+    $PRIV_ESC rm -f "$HICOLOR/32x32/apps/moonlight-$BRANCH.png"
+    $PRIV_ESC rm -f "$HICOLOR/48x48/apps/moonlight-$BRANCH.png"
+    $PRIV_ESC rm -f "$HICOLOR/64x64/apps/moonlight-$BRANCH.png"
+    $PRIV_ESC rm -f "$HICOLOR/128x128/apps/moonlight-$BRANCH.png"
+    $PRIV_ESC rm -f "$HICOLOR/256x256/apps/moonlight-$BRANCH.png"
+    $PRIV_ESC rm -f "$HICOLOR/512x512/apps/moonlight-$BRANCH.png"
+    $PRIV_ESC rm -f "$HICOLOR/1024x1024/apps/moonlight-$BRANCH.png"
+
+    # Update icon cache
+    $PRIV_ESC gtk-update-icon-cache /usr/share/icons/hicolor/ || true
+
+    # Remove desktop entry
+    if [ "$BRANCH" = "stable" ]; then
+        DESKTOP_ENTRY_FILENAME="moonlight.desktop"
+    else
+        DESKTOP_ENTRY_FILENAME="moonlight-$BRANCH.desktop"
+    fi
+
+    $PRIV_ESC rm -f "/usr/share/applications/$DESKTOP_ENTRY_FILENAME"
+
+    echo "Uninstallation complete!"
+    exit 0
+fi
 
 # Convert BRANCH to uppercase or capitalize as needed
 if [ "$BRANCH" = "ptb" ]; then

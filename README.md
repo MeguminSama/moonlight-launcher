@@ -8,6 +8,8 @@ Download and run [the latest installer](https://github.com/MeguminSama/moonlight
 
 # Linux
 
+You can uninstall on linux by adding the `--uninstall` flag to the end
+
 ## Stable
 
 ```
