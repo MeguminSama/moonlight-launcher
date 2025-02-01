@@ -5,7 +5,7 @@ members = ["crates/*"]
 name = "moonlight-launcher"
 description = "An easy-to-use launcher for moonlight"
 authors = ["Rie Takahashi <megumin@megu.dev>"]
-version = "0.1.2"
+version = "0.1.3"
 license = "GPL-3.0"
 homepage = "https://github.com/meguminsama/moonlight-launcher"
 repository = "https://github.com/meguminsama/moonlight-launcher"
@@ -15,7 +15,8 @@ edition = "2021"
 [dependencies]
 clap = "4.5.27"
 dirs = "6.0.0"
-electron-hook = "0.2.0-beta.14"
+# electron-hook = "0.2.0-beta.14"
+electron-hook = { path = "../electron-hook" }
 flate2 = "1.0.35"
 tar = "0.4.43"
 tinyjson = "2.5.1"

@@ -15,16 +15,19 @@ sh -c "$(curl -fsSL https://github.com/MeguminSama/moonlight-launcher/releases/l
 ```
 
 ## PTB
+
 ```
 sh -c "$(curl -fsSL https://github.com/MeguminSama/moonlight-launcher/releases/latest/download/install.sh)" -- ptb
 ```
 
 ## Canary
+
 ```
 sh -c "$(curl -fsSL https://github.com/MeguminSama/moonlight-launcher/releases/latest/download/install.sh)" -- canary
 ```
 
 ## Uninstalling
+
 ```
 sh -c "$(curl -fsSL https://github.com/MeguminSama/moonlight-launcher/releases/latest/download/install.sh)" -- --uninstall <branch>
 ```
@@ -32,7 +35,6 @@ sh -c "$(curl -fsSL https://github.com/MeguminSama/moonlight-launcher/releases/l
 # MacOS
 
 Working on it...
-
 
 # Commandline Arguments
 

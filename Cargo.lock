@@ -468,9 +468,7 @@ checksum = "60b1af1c220855b6ceac025d3f6ecdd2b7c4894bfe9cd9bda4fbb4bc7c0d4cf0"
 
 [[package]]
 name = "electron-hook"
-version = "0.2.0-beta.14"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0fe57d132ecceb9c68254be12ecbcaf8b04168060ba3031436c34f8c110e6e41"
+version = "0.2.0-beta.15"
 dependencies = [
  "asar",
  "detours-sys",
@@ -807,7 +805,7 @@ dependencies = [
 
 [[package]]
 name = "moonlight-launcher"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "clap",
  "dialog",
