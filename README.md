@@ -8,8 +8,6 @@ Download and run [the latest installer](https://github.com/MeguminSama/moonlight
 
 # Linux
 
-You can uninstall on linux by adding the `--uninstall` flag to the end
-
 ## Stable
 
 ```
@@ -26,6 +24,30 @@ sh -c "$(curl -fsSL https://github.com/MeguminSama/moonlight-launcher/releases/l
 sh -c "$(curl -fsSL https://github.com/MeguminSama/moonlight-launcher/releases/latest/download/install.sh)" -- canary
 ```
 
+## Uninstalling
+```
+sh -c "$(curl -fsSL https://github.com/MeguminSama/moonlight-launcher/releases/latest/download/install.sh)" -- --uninstall <branch>
+```
+
 # MacOS
 
 Working on it...
+
+
+# Commandline Arguments
+
+## Using a local (git) instance of a mod?
+
+You can pass the `--local` flag with a path to the entrypoint. For example:
+
+```
+moonlight-stable --local $HOME/workspace/moonlight/injector.js
+```
+
+## Passing arguments through to discord?
+
+Any arguments passed after `--` are passed through to Discord. For example:
+
+```
+moonlight-stable -- --start-minimized --enable-blink-features=MiddleClickAutoscroll
+```
