@@ -66,9 +66,15 @@ pub fn get_discord(branch: DiscordBranch) -> Option<PathBuf> {
     // FIXME: Flatpak Support
 
     // As a last resort, try checking if it's in PATH
+    let command = if branch == DiscordBranch::Stable {
+        "discord".to_string()
+    } else {
+        format!("discord-{lower_name}")
+    };
+
     let command_output = Command::new("sh")
         .arg("-c")
-        .arg(format!("command -v discord-{lower_name}"))
+        .arg(format!("command -v {}", command))
         .output()
         .ok()?;
 
