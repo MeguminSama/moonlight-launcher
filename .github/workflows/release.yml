@@ -12,10 +12,10 @@ on:
 jobs:
   build-linux:
     runs-on: "ubuntu-latest"
-    container: "quay.io/pypa/manylinux2014_x86_64" # needed for old glibc support
+    container: "quay.io/pypa/manylinux_2_28_x86_64" # needed for old glibc support
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@v1
@@ -23,7 +23,7 @@ jobs:
           toolchain: nightly
 
       - name: Cache Cargo Registry
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cargo/registry
           key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
@@ -31,7 +31,7 @@ jobs:
             ${{ runner.os }}-cargo-registry-
 
       - name: Cache Cargo Build
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: target
           key: ${{ runner.os }}-cargo-build-${{ hashFiles('**/Cargo.lock') }}
@@ -63,7 +63,7 @@ jobs:
           rm -r moonlight-stable moonlight-ptb moonlight-canary libmoonlight_launcher.so icons
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ runner.os }}-artifacts
           path: artifacts/
