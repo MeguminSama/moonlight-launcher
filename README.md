@@ -4,10 +4,10 @@ Quickly and conveniently launch moonlight.
 
 # Screenshots
 
+
 |                  Windows                   |                 Linux                  |
 | :----------------------------------------: | :------------------------------------: |
 | ![](.github/assets/windows-start-menu.png) | ![](.github/assets/kde-start-menu.png) |
-|  ![](.github/assets/windows-taskbar.png)   |  ![](.github/assets/kde-taskbar.png)   |
 
 # Windows
 
