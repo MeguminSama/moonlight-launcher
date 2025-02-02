@@ -345,6 +345,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "ctor"
+version = "0.2.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "32a2785755761f3ddc1492979ce1e48d2c00d09311c39e4466429188f3dd6501"
+dependencies = [
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "darling"
 version = "0.20.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -468,11 +478,12 @@ checksum = "60b1af1c220855b6ceac025d3f6ecdd2b7c4894bfe9cd9bda4fbb4bc7c0d4cf0"
 
 [[package]]
 name = "electron-hook"
-version = "0.2.0-beta.15"
+version = "0.2.0-beta.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9feb6647e9c1fdb8c179560cf8273137f2e5276fdda382291f5bde7282cd8c30"
+checksum = "e3538341b63783d8228c47b483a05bcf90ef3df2d50da42841cfb8211f57d3d6"
 dependencies = [
  "asar",
+ "ctor",
  "detours-sys",
  "dirs 6.0.0",
  "libc",

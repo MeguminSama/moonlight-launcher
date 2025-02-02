@@ -8,6 +8,8 @@ Download and run [the latest installer](https://github.com/MeguminSama/moonlight
 
 # Linux
 
+The Linux build also supports flatpak, and will use it if it cannot find another instance of Discord on your filesystem.
+
 ## Stable
 
 ```

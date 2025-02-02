@@ -8,8 +8,13 @@ pub enum DiscordBranch {
     Development,
 }
 
+pub enum DiscordPath {
+    Filesystem(PathBuf),
+    FlatpakId(String),
+}
+
 #[cfg(windows)]
-pub fn get_discord(branch: DiscordBranch) -> Option<PathBuf> {
+pub fn get_discord(branch: DiscordBranch) -> Option<DiscordPath> {
     use crate::windows::get_latest_executable;
     let local_appdata = dirs::data_local_dir()?;
 
@@ -28,11 +33,11 @@ pub fn get_discord(branch: DiscordBranch) -> Option<PathBuf> {
 
     let executable = get_latest_executable(&dir).ok()?;
 
-    Some(executable)
+    Some(DiscordPath::Filesystem(executable))
 }
 
 #[cfg(target_os = "linux")]
-pub fn get_discord(branch: DiscordBranch) -> Option<PathBuf> {
+pub fn get_discord(branch: DiscordBranch) -> Option<DiscordPath> {
     use std::process::Command;
 
     let local_share = dirs::data_local_dir()?;
@@ -49,18 +54,18 @@ pub fn get_discord(branch: DiscordBranch) -> Option<PathBuf> {
     let executable = local_share.join(name).join(name);
 
     if executable.is_file() {
-        return Some(executable);
+        return Some(DiscordPath::Filesystem(executable));
     }
 
     // If that doesn't work, try $HOME/.dvm/branches
     let executable = dirs::home_dir()?.join(format!(".dvm/branches/{lower_name}/{name}/{name}"));
     if executable.is_file() {
-        return Some(executable);
+        return Some(DiscordPath::Filesystem(executable));
     }
 
     let executable = PathBuf::from(format!("/usr/bin/discord-{lower_name}"));
     if executable.is_file() {
-        return Some(executable);
+        return Some(DiscordPath::Filesystem(executable));
     }
 
     // FIXME: Flatpak Support
@@ -81,7 +86,22 @@ pub fn get_discord(branch: DiscordBranch) -> Option<PathBuf> {
     if command_output.status.success() {
         let path = String::from_utf8(command_output.stdout).ok()?;
         let path = path.trim(); // Remove any trailing newline
-        return Some(PathBuf::from(path));
+        return Some(DiscordPath::Filesystem(PathBuf::from(path)));
+    }
+
+    let flatpak_name = match branch {
+        DiscordBranch::Stable => "com.discordapp.Discord",
+        DiscordBranch::PTB => "com.discordapp.DiscordPTB",
+        DiscordBranch::Canary => "com.discordapp.DiscordCanary",
+        DiscordBranch::Development => "com.discordapp.DiscordDevelopment",
+    };
+
+    let flatpak_dir = PathBuf::from(format!(
+        "/var/lib/flatpak/app/{flatpak_name}/current/active/"
+    ));
+
+    if flatpak_dir.is_dir() {
+        return Some(DiscordPath::FlatpakId(flatpak_name.to_string()));
     }
 
     None
