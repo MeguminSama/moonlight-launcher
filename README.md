@@ -2,6 +2,13 @@
 
 Quickly and conveniently launch moonlight.
 
+# Screenshots
+
+|                  Windows                   |                 Linux                  |
+| :----------------------------------------: | :------------------------------------: |
+| ![](.github/assets/windows-start-menu.png) | ![](.github/assets/kde-start-menu.png) |
+|  ![](.github/assets/windows-taskbar.png)   |  ![](.github/assets/kde-taskbar.png)   |
+
 # Windows
 
 Download and run [the latest installer](https://github.com/MeguminSama/moonlight-launcher/releases/latest/download/moonlight-installer.exe) and pick the branches of Discord you want.
