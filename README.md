@@ -23,6 +23,12 @@ The Linux build also supports flatpak, and will use it if it cannot find another
 sh -c "$(curl -fsSL https://github.com/MeguminSama/moonlight-launcher/releases/latest/download/install.sh)"
 ```
 
+moonlight launcher is also available on the AUR
+
+```
+paru -S moonlight-stable
+```
+
 ## PTB
 
 ```
