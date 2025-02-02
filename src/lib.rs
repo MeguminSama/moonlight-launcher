@@ -123,13 +123,14 @@ pub async fn launch(instance_id: &str, branch: DiscordBranch, display_name: &str
             )
             .unwrap();
         }
+        #[cfg(target_os = "linux")]
         DiscordPath::FlatpakId(id) => {
-            #[cfg(target_os = "linux")]
             electron_hook::launch_flatpak(&id, &library_name, &asar_path, args.launch_args, false)
                 .unwrap();
-
-            #[cfg(not(target_os = "linux"))]
-            panic!("Flatpak is only supported on linux.")
+        }
+        #[cfg(not(target_os = "linux"))]
+        DiscordPath::FlatpakId(_) => {
+            panic!("Flatpak is only supported on Linux");
         }
     }
 }
