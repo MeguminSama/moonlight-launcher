@@ -1,6 +1,6 @@
 # moonlight Launcher
 
-Quickly and conveniently launch moonlight.
+Quickly and conveniently launch moonlight, on Windows, Linux, and Flatpak!
 
 # Screenshots
 
