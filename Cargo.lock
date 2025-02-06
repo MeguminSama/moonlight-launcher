@@ -478,9 +478,9 @@ checksum = "60b1af1c220855b6ceac025d3f6ecdd2b7c4894bfe9cd9bda4fbb4bc7c0d4cf0"
 
 [[package]]
 name = "electron-hook"
-version = "0.2.0-beta.19"
+version = "0.2.0-beta.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cb20687f4018e05a74edf0fb480f36fa75b44d4f20641e4ca73208a29d50dd52"
+checksum = "11b1161786f80d3a4e32cb657735c797e6108ed4f99db6562b5eb4906530b755"
 dependencies = [
  "asar",
  "ctor",
