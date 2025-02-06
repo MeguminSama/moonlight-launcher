@@ -2,6 +2,8 @@
 
 Quickly and conveniently launch moonlight, on Windows, Linux, and Flatpak!
 
+Auto-updates moonlight on startup so you never have to think about it, and has support for local git installs of moonlight for developers too!
+
 # Screenshots
 
 
