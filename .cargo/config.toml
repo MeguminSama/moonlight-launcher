@@ -1,3 +1,26 @@
 [alias]
 build-all = "build --all --release"
 prepare-release = "run -p xtask-prepare-release"
+
+[target.x86_64-unknown-linux-gnu]
+rustflags = [
+    "-Zthreads=0",
+    "-Zshare-generics=y",
+]
+
+[profile.release]
+codegen-units = 1
+lto = "fat"
+panic = "abort"
+opt-level = "z"
+
+[profile.dev]
+panic = "abort"
+
+[profile.fast-release]
+inherits = "release"
+codegen-backend = "cranelift"
+codegen-units = 1
+lto = "fat"
+panic = "abort"
+opt-level = "z"

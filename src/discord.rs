@@ -1,5 +1,7 @@
 use std::path::PathBuf;
 
+use electron_hook::FlatpakID;
+
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum DiscordBranch {
     Stable,
@@ -10,7 +12,7 @@ pub enum DiscordBranch {
 
 pub enum DiscordPath {
     Filesystem(PathBuf),
-    FlatpakId(String),
+    FlatpakId(FlatpakID),
 }
 
 #[cfg(windows)]
@@ -35,6 +37,14 @@ pub fn get_discord(branch: DiscordBranch) -> Option<DiscordPath> {
 
     Some(DiscordPath::Filesystem(executable))
 }
+
+// In order:
+// Try ~/.local/share/<discord>
+// Try ~/.dvm/branches/<discord>
+// Try /usr/bin/discord-<discord>
+// Try checking if it's in PATH
+// Try ~/.local/share/flatpak/app/<discord>
+// Try /var/lib/flatpak/app/<discord>
 
 #[cfg(target_os = "linux")]
 pub fn get_discord(branch: DiscordBranch) -> Option<DiscordPath> {
@@ -68,8 +78,6 @@ pub fn get_discord(branch: DiscordBranch) -> Option<DiscordPath> {
         return Some(DiscordPath::Filesystem(executable));
     }
 
-    // FIXME: Flatpak Support
-
     // As a last resort, try checking if it's in PATH
     let command = if branch == DiscordBranch::Stable {
         "discord".to_string()
@@ -96,12 +104,22 @@ pub fn get_discord(branch: DiscordBranch) -> Option<DiscordPath> {
         DiscordBranch::Development => "com.discordapp.DiscordDevelopment",
     };
 
+    let flatpak_dir = local_share.join(format!("flatpak/app/{flatpak_name}/current/active/"));
+
+    if flatpak_dir.is_dir() {
+        return Some(DiscordPath::FlatpakId(FlatpakID::User(
+            flatpak_name.to_string(),
+        )));
+    }
+
     let flatpak_dir = PathBuf::from(format!(
         "/var/lib/flatpak/app/{flatpak_name}/current/active/"
     ));
 
     if flatpak_dir.is_dir() {
-        return Some(DiscordPath::FlatpakId(flatpak_name.to_string()));
+        return Some(DiscordPath::FlatpakId(FlatpakID::System(
+            flatpak_name.to_string(),
+        )));
     }
 
     None
