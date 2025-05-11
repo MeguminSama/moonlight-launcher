@@ -499,9 +499,9 @@ checksum = "60b1af1c220855b6ceac025d3f6ecdd2b7c4894bfe9cd9bda4fbb4bc7c0d4cf0"
 
 [[package]]
 name = "electron-hook"
-version = "0.2.0-beta.22"
+version = "0.2.0-beta.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "37ed4f6d99edbae1f6ed5f93f4f7f9dda49334d42f85c1120fc75420d3ec4965"
+checksum = "0648ced9b01891be01bc449de6a52843cd612de904375041d842c8cadad32ffe"
 dependencies = [
  "asar",
  "ctor",
@@ -509,6 +509,7 @@ dependencies = [
  "dirs 6.0.0",
  "libc",
  "retour",
+ "serde_json",
  "uuid",
  "widestring",
  "winapi 0.3.9",
@@ -1180,9 +1181,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.138"
+version = "1.0.140"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d434192e7da787e94a6ea7e9670b26a036d0ca41e0b7efb2676dd32bae872949"
+checksum = "20068b6e96dc6c9bd23e01df8827e6c7e1f2fddd43c21810382803c136b99373"
 dependencies = [
  "itoa",
  "memchr",
