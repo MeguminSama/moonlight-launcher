@@ -18,5 +18,7 @@ require(process.env.MODLOADER_MOD_ENTRYPOINT).inject(
   require("path").resolve(
     __dirname,
     process.env.MODLOADER_ORIGINAL_ASAR_RELATIVE,
-  ),
+  ), {
+  disablePersist: true
+}
 );
