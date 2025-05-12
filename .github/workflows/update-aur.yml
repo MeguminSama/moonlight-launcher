@@ -89,7 +89,9 @@ jobs:
       - name: Generate .SRCINFO
         run: |
           cd pkgbuild
-          makepkg --printsrcinfo > .SRCINFO
+          useradd makepkg
+          chown makepkg:root . -R
+          su makepkg -c "makepkg --printsrcinfo" > .SRCINFO
           cd ..
 
       - name: Clone AUR repository
