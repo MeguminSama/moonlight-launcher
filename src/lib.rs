@@ -23,15 +23,38 @@ struct Args {
     #[clap(short, long)]
     pub local: Option<String>,
 
+    /// Which branch of moonlight to launch.
+    ///
+    /// If you're running moonlight-stable, the default will be `stable`.
+    ///
+    /// If you're running moonlight-ptb or moonlight-canary, this will be `nightly`.
+    #[clap(long, value_enum)]
+    pub branch: Option<MoonlightBranch>,
+
     /// Optional launch arguments to pass to the Discord executable
     ///
     /// e.g. `-- --start-minimized --enable-blink-features=MiddleClickAutoscroll`
     #[clap(allow_hyphen_values = true, last = true)]
     pub launch_args: Vec<String>,
 }
+#[derive(clap::ValueEnum, Debug, Clone)]
+pub enum MoonlightBranch {
+    Stable,
+    Nightly,
+}
 
-pub async fn launch(instance_id: &str, branch: DiscordBranch, display_name: &str) {
+pub async fn launch(
+    instance_id: &str,
+    branch: DiscordBranch,
+    display_name: &str,
+    moonlight_branch: MoonlightBranch,
+) {
     let args = Args::parse();
+
+    let moonlight_branch = match args.branch {
+        Some(branch) => branch,
+        None => moonlight_branch,
+    };
 
     let Some(discord_dir) = discord::get_discord(branch) else {
         let title = format!("No {display_name} installation found!");
@@ -62,7 +85,7 @@ pub async fn launch(instance_id: &str, branch: DiscordBranch, display_name: &str
     } else {
         // We can usually attempt to run Discord even if the downloads fail...
         // TODO: Make this more robust. Maybe specific error reasons so we can determine if it's safe to continue.
-        let _ = updater::download_assets().await;
+        let _ = updater::download_assets(moonlight_branch).await;
 
         assets_dir
             .join(constants::MOD_ENTRYPOINT)

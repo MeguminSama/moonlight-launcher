@@ -2,7 +2,64 @@ use std::collections::HashMap;
 use tinyjson::JsonValue;
 use tokio::task::JoinSet;
 
-use crate::constants;
+use crate::{constants, MoonlightBranch};
+
+async fn fetch_nightly_release() -> Option<(GithubRelease, Vec<GithubReleaseAsset>)> {
+    // Fetch the ref file which contains the build hash and tag
+    let mut response = ureq::get(NIGHTLY_REF_URL).call().ok()?;
+    let body = response.body_mut().read_to_string().ok()?;
+    let mut lines = body.lines();
+
+    // First line is the build hash, second line is the tag (refs/heads/develop)
+    let build_hash = lines.next()?.to_string();
+    let tag = lines.next()?.to_string();
+
+    // Create a release and asset for the nightly build
+    let release = GithubRelease {
+        tag_name: build_hash,
+        name: tag,
+    };
+
+    let asset = GithubReleaseAsset {
+        name: "dist.tar.gz".to_string(),
+        browser_download_url: NIGHTLY_DOWNLOAD_URL.to_string(),
+    };
+
+    Some((release, vec![asset]))
+}
+
+async fn fetch_stable_release() -> Option<(GithubRelease, Vec<GithubReleaseAsset>)> {
+    // Get the latest release manifest from GitHub
+    let mut response = ureq::get(constants::RELEASE_URL).call().ok()?;
+    let body = response.body_mut().read_to_string().ok()?;
+    let json: JsonValue = body.parse().ok()?;
+    let object: &HashMap<_, _> = json.get()?;
+
+    let tag_name: String = object.get("tag_name")?.get::<String>()?.clone();
+    let name: String = object.get("name")?.get::<String>()?.clone();
+
+    // Get the assets
+    let assets: &Vec<_> = object.get("assets")?.get()?;
+    let assets: Vec<GithubReleaseAsset> = assets
+        .iter()
+        .filter_map(|asset| {
+            let asset: &HashMap<_, _> = asset.get()?;
+            let name: &String = asset.get("name")?.get()?;
+            let browser_download_url: &String = asset.get("browser_download_url")?.get()?;
+
+            if constants::RELEASE_ASSETS.contains(&name.as_str()) {
+                Some(GithubReleaseAsset {
+                    name: name.clone(),
+                    browser_download_url: browser_download_url.clone(),
+                })
+            } else {
+                None
+            }
+        })
+        .collect();
+
+    Some((GithubRelease { tag_name, name }, assets))
+}
 
 struct GithubRelease {
     pub tag_name: String,
@@ -14,7 +71,10 @@ struct GithubReleaseAsset {
     pub browser_download_url: String,
 }
 
-pub async fn download_assets() -> Option<()> {
+static NIGHTLY_REF_URL: &str = "https://moonlight-mod.github.io/moonlight/ref";
+static NIGHTLY_DOWNLOAD_URL: &str = "https://moonlight-mod.github.io/moonlight/dist.tar.gz";
+
+pub async fn download_assets(moonlight_branch: MoonlightBranch) -> Option<()> {
     let assets_dir = constants::asset_cache_dir().unwrap();
     let release_file = assets_dir.join(constants::RELEASE_INFO_FILE);
 
@@ -35,50 +95,22 @@ pub async fn download_assets() -> Option<()> {
         None
     };
 
-    // Get the latest release manifest from GitHub. If it fails, try the fallback.
     println!("[moonlight launcher] Checking for updates...");
-    let mut response = ureq::get(constants::RELEASE_URL).call().ok()?;
-    // TODO: Add fallback URL
-    // if response.status() != 200 {
-    //     println!("[moonlight launcher] GitHub ratelimited... Trying fallback...");
-    //     response = ureq::get(constants::RELEASE_URL_FALLBACK).call().ok()?;
-    // }
-    let body = response.body_mut().read_to_string().ok()?;
 
-    let json: JsonValue = body.parse().ok()?;
-    let object: &HashMap<_, _> = json.get()?;
-
-    let tag_name: &String = object.get("tag_name")?.get()?;
-    let name: &String = object.get("name")?.get()?;
+    // Fetch the appropriate release based on the branch
+    let (release, assets) = match moonlight_branch {
+        MoonlightBranch::Stable => fetch_stable_release().await?,
+        MoonlightBranch::Nightly => fetch_nightly_release().await?,
+    };
 
     // If the latest release is the same as our current one, don't bother downloading.
-    if let Some(release) = current_version {
-        if release.name == *name && release.tag_name == *tag_name {
+    if let Some(current) = current_version {
+        if current.name == release.name && current.tag_name == release.tag_name {
             return Some(());
         }
     }
 
     println!("[moonlight launcher] An update is available... Downloading...");
-
-    // Loop over the assets and find the ones we want.
-    let assets: &Vec<_> = object.get("assets")?.get()?;
-    let assets: Vec<_> = assets
-        .iter()
-        .filter_map(|asset| {
-            let asset: &HashMap<_, _> = asset.get()?;
-
-            let name: &String = asset.get("name")?.get()?;
-            let browser_download_url: &String = asset.get("browser_download_url")?.get()?;
-            if constants::RELEASE_ASSETS.contains(&name.as_str()) {
-                Some(GithubReleaseAsset {
-                    name: name.clone(),
-                    browser_download_url: browser_download_url.clone(),
-                })
-            } else {
-                None
-            }
-        })
-        .collect();
 
     // Spawn all the download tasks simultaneously.
     // TODO: Make this more robust. What if one fails but the rest succeed? We want to try re-downloading it.
@@ -111,7 +143,9 @@ pub async fn download_assets() -> Option<()> {
         "{{\n\
         	\"tag_name\": \"{tag_name}\",\n\
         	\"name\": \"{name}\"\n\
-		}}"
+		}}",
+        tag_name = release.tag_name,
+        name = release.name
     );
 
     std::fs::write(&release_file, release_json).ok()?;
