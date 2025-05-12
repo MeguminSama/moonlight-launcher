@@ -89,6 +89,7 @@ jobs:
       - name: Generate .SRCINFO
         run: |
           cd pkgbuild
+          echo ${{ steps.get_version.outputs.version }}
           useradd makepkg
           chown makepkg:root . -R
           su makepkg -c "makepkg --printsrcinfo" > .SRCINFO
