@@ -8,6 +8,8 @@ on:
 jobs:
   update-aur:
     runs-on: ubuntu-latest
+    container:
+      image: archlinux
     strategy:
       matrix:
         variant: ["stable", "ptb", "canary"]
