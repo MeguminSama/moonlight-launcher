@@ -107,6 +107,7 @@ jobs:
           chown makepkg:root . -R
           su makepkg -c "makepkg --printsrcinfo" > .SRCINFO
           cd ..
+          cp pkgbuild/.SRCINFO aur-${{ matrix.variant }}/
 
       - name: Clone AUR repository
         run: |
