@@ -35,15 +35,17 @@ jobs:
         id: get_version
         run: |
           if [[ "${{ github.event_name }}" == "release" ]]; then
-            echo "version=${{ github.event.release.name#v }}" >> $GITHUB_OUTPUT
+            version=${{ github.event.release.name }}
+            echo "version=${version#v}" >> $GITHUB_OUTPUT
           elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo "version=${{ github.event.inputs.version#v }}" >> $GITHUB_OUTPUT
+            version=${{ github.event.inputs.version }}
+            echo "version=${version#v}" >> $GITHUB_OUTPUT
           fi
 
       - name: Download release assets
         run: |
           mkdir -p assets
-          wget "https://github.com/MeguminSama/moonlight-launcher/releases/download/v${{ steps.get_version.outputs.version }}/moonlight-${{ matrix.variant }}-v${{ steps.get_version.outputs.version }}.tar.gz" -O assets/moonlight-${{ matrix.variant }}.tar.gz
+          wget "https://github.com/MeguminSama/moonlight-launcher/releases/download/v${{ steps.get_version.outputs.version }}/moonlight-${{ matrix.variant }}-${{ steps.get_version.outputs.version }}.tar.gz" -O assets/moonlight-${{ matrix.variant }}.tar.gz
         if: steps.get_version.outputs.version
 
       - name: Calculate SHA256 sums
