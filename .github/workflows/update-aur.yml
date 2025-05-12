@@ -2,10 +2,12 @@ name: Update AUR Packages
 
 on:
   workflow_dispatch:
+  workflow_run:
+    workflows: ["Build and Release"]
+    types:
+      - completed
   release:
     types: [released]
-    after:
-      - Build and Release
 
 jobs:
   update-aur:
@@ -27,7 +29,7 @@ jobs:
 
       - name: Get release version
         id: get_version
-        run: echo "version=${{ github.event.release.tag_name#v }}" >> $GITHUB_OUTPUT
+        run: echo "version=${{ github.event.release.name#v }}" >> $GITHUB_OUTPUT
 
       - name: Download release assets
         run: |
