@@ -107,7 +107,6 @@ jobs:
           chown makepkg:root . -R
           su makepkg -c "makepkg --printsrcinfo" > .SRCINFO
           cd ..
-          cp pkgbuild/.SRCINFO aur-${{ matrix.variant }}/
 
       - name: Clone AUR repository
         run: |
@@ -126,7 +125,8 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.AUR_SSH_PRIVATE_KEY }}" > ~/.ssh/aur_key
           chmod 600 ~/.ssh/aur_key
-
+          
+          cp pkgbuild/.SRCINFO aur-${{ matrix.variant }}/
           cp pkgbuild/* aur-${{ matrix.variant }}/
           cd aur-${{ matrix.variant }}
 
