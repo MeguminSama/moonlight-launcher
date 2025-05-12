@@ -40,6 +40,13 @@ jobs:
           elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             version=${{ github.event.inputs.version }}
             echo "version=${version#v}" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.event_name }}" == "workflow_run" ]]; then
+            TAG_NAME=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/MeguminSama/moonlight-launcher/releases/latest | \
+            jq -r .tag_name)
+            echo "Tag name: $TAG_NAME"
+            echo "version=${TAG_NAME#v}" >> $GITHUB_OUTPUT
           fi
 
       - name: Download release assets
