@@ -2,6 +2,10 @@ name: Update AUR Packages
 
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to publish"
+        required: true
   workflow_run:
     workflows: ["Build and Release"]
     types:
@@ -29,7 +33,12 @@ jobs:
 
       - name: Get release version
         id: get_version
-        run: echo "version=${{ github.event.release.name }}" >> $GITHUB_OUTPUT
+        run: |
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            echo "version=${{ github.event.release.name }}" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          fi
 
       - name: Download release assets
         run: |
