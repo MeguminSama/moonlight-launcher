@@ -20,7 +20,7 @@ jobs:
       image: archlinux
     strategy:
       matrix:
-        variant: ["stable", "ptb", "canary"]
+        variant: ["stable", "ptb", "canary", "lib"]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -45,60 +45,90 @@ jobs:
       - name: Download release assets
         run: |
           mkdir -p assets
-          wget "https://github.com/MeguminSama/moonlight-launcher/releases/download/v${{ steps.get_version.outputs.version }}/moonlight-${{ matrix.variant }}-v${{ steps.get_version.outputs.version }}.tar.gz" -O assets/moonlight-${{ matrix.variant }}.tar.gz
+          if [[ "${{ matrix.variant }}" != "lib" ]]; then
+            wget "https://github.com/MeguminSama/moonlight-launcher/releases/download/v${{ steps.get_version.outputs.version }}/moonlight-${{ matrix.variant }}-v${{ steps.get_version.outputs.version }}.tar.gz" -O assets/moonlight-${{ matrix.variant }}.tar.gz
+          else
+            wget "https://github.com/MeguminSama/moonlight-launcher/releases/download/v${{ steps.get_version.outputs.version }}/moonlight-stable-v${{ steps.get_version.outputs.version }}.tar.gz" -O assets/moonlight-lib.tar.gz
+          fi
         if: steps.get_version.outputs.version
 
       - name: Calculate SHA256 sums
         id: sha256sum
         run: |
-          echo "sha256=$(sha256sum assets/moonlight-${{ matrix.variant }}.tar.gz | awk '{print $1}')" >> $GITHUB_OUTPUT
-          echo "desktop_sha256=$(sha256sum .github/aur/moonlight-${{ matrix.variant }}.desktop | awk '{print $1}')" >> $GITHUB_OUTPUT
+          if [[ "${{ matrix.variant }}" != "lib" ]]; then
+            echo "sha256=$(sha256sum assets/moonlight-${{ matrix.variant }}.tar.gz | awk '{print $1}')" >> $GITHUB_OUTPUT
+            echo "desktop_sha256=$(sha256sum .github/aur/moonlight-${{ matrix.variant }}.desktop | awk '{print $1}')" >> $GITHUB_OUTPUT
+          else
+            echo "sha256=$(sha256sum assets/moonlight-lib.tar.gz | awk '{print $1}')" >> $GITHUB_OUTPUT
+          fi
 
       - name: Create package files
         run: |
           mkdir -p pkgbuild
 
-          # Copy .desktop file from repository
-          cp .github/aur/moonlight-${{ matrix.variant }}.desktop pkgbuild/moonlight-${{ matrix.variant }}.desktop
+          if [[ "${{ matrix.variant }}" != "lib" ]]; then
+            # Copy .desktop file from repository
+            cp .github/aur/moonlight-${{ matrix.variant }}.desktop pkgbuild/moonlight-${{ matrix.variant }}.desktop
 
-          # Copy LICENSE file from repository
-          cp .github/aur/LICENSE pkgbuild/LICENSE
+            # Copy LICENSE file from repository
+            cp .github/aur/LICENSE pkgbuild/LICENSE
 
-          # Generate PKGBUILD
-          cat > pkgbuild/PKGBUILD <<EOF
-          # Maintainer: rie_t <megumin at megu dot dev>
-          pkgname=moonlight-${{ matrix.variant }}-bin
-          _pkgname=moonlight-${{ matrix.variant }}
-          pkgver=${{ steps.get_version.outputs.version }}
-          pkgrel=1
-          pkgdesc="A convenient launcher for the moonlight Discord mod (${{ matrix.variant }})"
-          arch=('x86_64')
-          url="https://github.com/MeguminSama/moonlight-launcher"
-          license=("GPL-3.0-only")
-          provides=("\${_pkgname}")
+            # Generate PKGBUILD for launcher variants
+            cat > pkgbuild/PKGBUILD <<EOF
+            # Maintainer: rie_t <megumin at megu dot dev>
+            pkgname=moonlight-${{ matrix.variant }}-bin
+            _pkgname=moonlight-${{ matrix.variant }}
+            pkgver=${{ steps.get_version.outputs.version }}
+            pkgrel=1
+            pkgdesc="A convenient launcher for the moonlight Discord mod (${{ matrix.variant }})"
+            arch=('x86_64')
+            url="https://github.com/MeguminSama/moonlight-launcher"
+            license=("GPL-3.0-only")
+            provides=("\${_pkgname}")
 
-          depends=("libmoonlight-launcher")
-          optdepends=("discord: An install of Discord is required to run the launcher")
+            depends=("libmoonlight-launcher")
+            optdepends=("discord: An install of Discord is required to run the launcher")
 
-          source=(
-              "\$pkgname-\$pkgver.tar.gz::https://github.com/MeguminSama/moonlight-launcher/releases/download/v\${pkgver}/moonlight-${{ matrix.variant }}-v\${pkgver}.tar.gz"
-              "\${_pkgname}.desktop"
-          )
-          sha256sums=(
-              "${{ steps.sha256sum.outputs.sha256 }}"
-              "${{ steps.sha256sum.outputs.desktop_sha256 }}"
-          )
+            source=(
+                "\$pkgname-\$pkgver.tar.gz::https://github.com/MeguminSama/moonlight-launcher/releases/download/v\${pkgver}/moonlight-${{ matrix.variant }}-v\${pkgver}.tar.gz"
+                "\${_pkgname}.desktop"
+            )
+            sha256sums=(
+                "${{ steps.sha256sum.outputs.sha256 }}"
+                "${{ steps.sha256sum.outputs.desktop_sha256 }}"
+            )
 
-          package() {
-              install -Dm755 "\${srcdir}/moonlight-${{ matrix.variant }}" "\${pkgdir}/usr/bin/\${_pkgname}"
-              install -Dm755 "\${_pkgname}.desktop" "\${pkgdir}/usr/share/applications/\${_pkgname}.desktop"
+            package() {
+                install -Dm755 "\${srcdir}/moonlight-${{ matrix.variant }}" "\${pkgdir}/usr/bin/\${_pkgname}"
+                install -Dm755 "\${_pkgname}.desktop" "\${pkgdir}/usr/share/applications/\${_pkgname}.desktop"
 
-              _icon_sizes=("16x16" "32x32" "48x48" "64x64" "128x128" "256x256" "512x512" "1024x1024")
-              for _size in "\${_icon_sizes[@]}"; do
-                  install -Dm644 "\${srcdir}/icons/icon-\${_size}.png" "\${pkgdir}/usr/share/icons/hicolor/\${_size}/apps/\${_pkgname}.png"
-              done
-          }
-          EOF
+                _icon_sizes=("16x16" "32x32" "48x48" "64x64" "128x128" "256x256" "512x512" "1024x1024")
+                for _size in "\${_icon_sizes[@]}"; do
+                    install -Dm644 "\${srcdir}/icons/icon-\${_size}.png" "\${pkgdir}/usr/share/icons/hicolor/\${_size}/apps/\${_pkgname}.png"
+                done
+            }
+            EOF
+          else
+            # Generate PKGBUILD for lib variant
+            cat > pkgbuild/PKGBUILD <<EOF
+            # Maintainer: rie_t <megumin at megu dot dev>
+            pkgname=libmoonlight-launcher-bin
+            pkgver=${{ steps.get_version.outputs.version }}
+            pkgrel=1
+            pkgdesc="The library used by moonlight-launcher"
+            arch=('x86_64')
+            url="https://github.com/MeguminSama/moonlight-launcher"
+            license=("GPL-3.0-only")
+            provides=("libmoonlight-launcher=\${pkgver}")
+
+            source_x86_64=("\$pkgname-\$pkgver.tar.gz::https://github.com/MeguminSama/moonlight-launcher/releases/download/v\${pkgver}/moonlight-stable-v\${pkgver}.tar.gz")
+            sha256sums_x86_64=('${{ steps.sha256sum.outputs.sha256 }}')
+
+            package() {
+                install -Dm755 "\${srcdir}/libmoonlight_launcher.so" "\${pkgdir}/usr/lib/libmoonlight_launcher.so"
+            }
+            EOF
+          fi
 
       - name: Generate .SRCINFO
         run: |
@@ -113,7 +143,11 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.AUR_SSH_PRIVATE_KEY }}" > ~/.ssh/aur_key
           chmod 600 ~/.ssh/aur_key
-          git -c init.defaultBranch=master clone "ssh://aur@aur.archlinux.org/moonlight-${{ matrix.variant }}-bin.git" aur-${{ matrix.variant }}
+          if [[ "${{ matrix.variant }}" != "lib" ]]; then
+            git -c init.defaultBranch=master clone "ssh://aur@aur.archlinux.org/moonlight-${{ matrix.variant }}-bin.git" aur-${{ matrix.variant }}
+          else
+            git -c init.defaultBranch=master clone "ssh://aur@aur.archlinux.org/libmoonlight-launcher-bin.git" aur-${{ matrix.variant }}
+          fi
           cd aur-${{ matrix.variant }}
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
