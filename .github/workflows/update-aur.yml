@@ -4,6 +4,8 @@ on:
   workflow_dispatch:
   release:
     types: [released]
+    after:
+      - Build and Release
 
 jobs:
   update-aur:
@@ -25,8 +27,7 @@ jobs:
 
       - name: Get release version
         id: get_version
-        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-        if: startsWith(github.ref, 'refs/tags/v')
+        run: echo "version=${{ github.event.release.tag_name#v }}" >> $GITHUB_OUTPUT
 
       - name: Download release assets
         run: |
@@ -89,7 +90,6 @@ jobs:
       - name: Generate .SRCINFO
         run: |
           cd pkgbuild
-          echo ${{ steps.get_version.outputs.version }}
           useradd makepkg
           chown makepkg:root . -R
           su makepkg -c "makepkg --printsrcinfo" > .SRCINFO
