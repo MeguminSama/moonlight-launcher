@@ -107,7 +107,7 @@ jobs:
                     install -Dm644 "\${srcdir}/icons/icon-\${_size}.png" "\${pkgdir}/usr/share/icons/hicolor/\${_size}/apps/\${_pkgname}.png"
                 done
             }
-            EOF
+          EOF
           else
             # Generate PKGBUILD for lib variant
             cat > pkgbuild/PKGBUILD <<EOF
@@ -127,7 +127,7 @@ jobs:
             package() {
                 install -Dm755 "\${srcdir}/libmoonlight_launcher.so" "\${pkgdir}/usr/lib/libmoonlight_launcher.so"
             }
-            EOF
+          EOF
           fi
 
       - name: Generate .SRCINFO
