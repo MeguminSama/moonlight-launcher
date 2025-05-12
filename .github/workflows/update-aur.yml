@@ -110,6 +110,7 @@ jobs:
 
       - name: Clone AUR repository
         run: |
+          mkdir -p ~/.ssh
           echo "${{ secrets.AUR_SSH_PRIVATE_KEY }}" > ~/.ssh/aur_key
           chmod 600 ~/.ssh/aur_key
           git -c init.defaultBranch=master clone "ssh://aur@aur.archlinux.org/moonlight-${{ matrix.variant }}-bin.git" aur-${{ matrix.variant }}
@@ -121,9 +122,10 @@ jobs:
 
       - name: Update AUR package
         run: |
+          mkdir -p ~/.ssh
           echo "${{ secrets.AUR_SSH_PRIVATE_KEY }}" > ~/.ssh/aur_key
           chmod 600 ~/.ssh/aur_key
-          
+
           cp pkgbuild/* aur-${{ matrix.variant }}/
           cd aur-${{ matrix.variant }}
 
