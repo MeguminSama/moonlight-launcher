@@ -19,7 +19,7 @@ jobs:
 
       - name: Set up environment
         run: |
-          sudo pacman -S --noconfirm base-devel git
+          pacman -S --noconfirm base-devel git
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
 
