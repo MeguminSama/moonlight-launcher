@@ -2,11 +2,11 @@
 build-all = "build --all --release"
 prepare-release = "run -p xtask-prepare-release"
 
-[target.x86_64-unknown-linux-gnu]
-rustflags = [
-    "-Zthreads=0",
-    "-Zshare-generics=y",
-]
+# [target.x86_64-unknown-linux-gnu]
+# rustflags = [
+#     "-Zthreads=0",
+#     "-Zshare-generics=y",
+# ]
 
 [profile.release]
 codegen-units = 1
