@@ -69,7 +69,16 @@ jobs:
           path: artifacts/
 
   build-windows:
+    strategy:
+      matrix:
+        arch: [x64, arm64]
+        include:
+          - arch: x64
+            rust_target: x86_64-pc-windows-msvc
+          - arch: arm64
+            rust_target: aarch64-pc-windows-msvc
     runs-on: "windows-latest"
+    architecture: ${{ matrix.arch }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -78,22 +87,23 @@ jobs:
         uses: dtolnay/rust-toolchain@v1
         with:
           toolchain: nightly
+          target: ${{ matrix.rust_target }}
 
       - name: Cache Cargo Registry
         uses: actions/cache@v4
         with:
           path: ~/.cargo/registry
-          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-${{ matrix.arch }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
-            ${{ runner.os }}-cargo-registry-
+            ${{ runner.os }}-${{ matrix.arch }}-cargo-registry-
 
       - name: Cache Cargo Build
         uses: actions/cache@v4
         with:
           path: target
-          key: ${{ runner.os }}-cargo-build-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-${{ matrix.arch }}-cargo-build-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
-            ${{ runner.os }}-cargo-build-
+            ${{ runner.os }}-${{ matrix.arch }}-cargo-build-
 
       - name: Install NSIS
         run: choco install nsis --version 3.10 -y
@@ -104,7 +114,7 @@ jobs:
       - name: Package Windows artifacts
         run: |
           mkdir -p artifacts/windows
-          cp "target/release/moonlight installer.exe" "artifacts/windows/moonlight-installer.exe"
+          cp "target/release/moonlight installer.exe" "artifacts/windows/moonlight-installer-${{ matrix.arch }}.exe"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
