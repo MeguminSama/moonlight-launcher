@@ -1,2 +1,2 @@
 [toolchain]
-channel = "nightly-2025-06-26" # This is roughly 1.88.0 - https://github.com/Hpmason/retour-rs/issues/69
+channel = "nightly-2025-03-01" # This is roughly 1.88.0 - https://github.com/Hpmason/retour-rs/issues/69
