@@ -1,5 +1,5 @@
 !define PRODUCT_NAME "moonlight launcher"
-!define PRODUCT_VERSION "0.1.10.0"
+!define PRODUCT_VERSION "0.1.11.0"
 !define PRODUCT_PUBLISHER "Megumin"
 
 !define ASSETS_ROOT "assets"

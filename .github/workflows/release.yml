@@ -20,7 +20,7 @@ jobs:
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@v1
         with:
-          toolchain: nightly
+          toolchain: 1.88.0 # stdcall causing compile errors on latest nightly https://github.com/Hpmason/retour-rs/issues/69
 
       - name: Cache Cargo Registry
         uses: actions/cache@v4
@@ -120,7 +120,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ runner.os }}-artifacts
+          name: ${{ runner.os }}-${{ matrix.arch }}-artifacts
           path: artifacts/
 
   release:
