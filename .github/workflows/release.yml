@@ -74,11 +74,12 @@ jobs:
         arch: [x64, arm64]
         include:
           - arch: x64
+            runner_type: "windows-latest"
             rust_target: x86_64-pc-windows-msvc
           - arch: arm64
+            runner_type: "windows-11-arm"
             rust_target: aarch64-pc-windows-msvc
-    runs-on: "windows-latest"
-    architecture: ${{ matrix.arch }}
+    runs-on: "${{ matrix.runner_type }}"
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
