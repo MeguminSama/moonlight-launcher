@@ -540,8 +540,6 @@ checksum = "60b1af1c220855b6ceac025d3f6ecdd2b7c4894bfe9cd9bda4fbb4bc7c0d4cf0"
 [[package]]
 name = "electron-hook"
 version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "92f05eff7b8702cf4e4b2d7700c87c60d5660cdde33d809310873f78c09f4e28"
 dependencies = [
  "asar",
  "ctor",
@@ -558,8 +556,6 @@ dependencies = [
 [[package]]
 name = "electron-hook-detours-sys"
 version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "26aa926e5eb3f1a65f2fb13e39d652133ff52e4bf94efd727995b0ddacd4dadc"
 dependencies = [
  "bindgen",
  "cc",
@@ -730,6 +726,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "iced-x86"
+version = "1.21.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7c447cff8c7f384a7d4f741cfcff32f75f3ad02b406432e8d6c878d56b1edf6b"
+dependencies = [
+ "lazy_static",
+]
+
+[[package]]
 name = "ident_case"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -844,16 +849,6 @@ dependencies = [
  "bitflags 2.8.0",
  "libc",
  "redox_syscall",
-]
-
-[[package]]
-name = "libudis86-sys"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "139bbf9ddb1bfc90c1ac64dd2923d9c957cd433cee7315c018125d72ab08a6b0"
-dependencies = [
- "cc",
- "libc",
 ]
 
 [[package]]
@@ -1115,14 +1110,13 @@ dependencies = [
 
 [[package]]
 name = "retour"
-version = "0.3.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a9af44d40e2400b44d491bfaf8eae111b09f23ac4de6e92728e79d93e699c527"
+version = "0.4.0-alpha.4"
+source = "git+https://github.com/Hpmason/retour-rs?tag=v0.4.0-alpha.4#c9ea4f664816b1d68d809ec5087a79bbe7cc5e60"
 dependencies = [
  "cfg-if 1.0.0",
  "generic-array",
+ "iced-x86",
  "libc",
- "libudis86-sys",
  "mmap-fixed-fixed",
  "once_cell",
  "region",

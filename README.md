@@ -2,7 +2,7 @@
 
 [![GitHub release](https://img.shields.io/github/v/release/MeguminSama/moonlight-launcher?style=flat-square)](https://github.com/MeguminSama/moonlight-launcher/releases/latest)
 [![License](https://img.shields.io/github/license/MeguminSama/moonlight-launcher?style=flat-square)](LICENSE)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](CONTRIBUTING.md)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](https://github.com/MeguminSama/moonlight-launcher/issues)
 
 The cross-platform launcher for moonlight that doesn't modify your Discord install.
 

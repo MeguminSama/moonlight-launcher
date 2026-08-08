@@ -55,24 +55,7 @@ pub fn get_latest_executable(dir: &std::path::Path) -> Result<std::path::PathBuf
         .filter(|f| f.starts_with("app-"))
         .collect();
 
-    app_dirs.sort_by(|a, b| {
-        let parse_version = |s: &str| -> Result<Vec<u32>, ()> {
-            // Split into prefix and version parts
-            let version_str = s.split_once('-').map(|x| x.1).ok_or(())?;
-            // Parse each numeric component
-            version_str
-                .split('.')
-                .map(|num| num.parse().map_err(|_| ()))
-                .collect()
-        };
-
-        match (parse_version(a), parse_version(b)) {
-            (Ok(a_ver), Ok(b_ver)) => b_ver.cmp(&a_ver), // Both valid: compare versions
-            (Ok(_), Err(_)) => std::cmp::Ordering::Less, // Valid < Invalid
-            (Err(_), Ok(_)) => std::cmp::Ordering::Greater, // Invalid > Valid
-            (Err(_), Err(_)) => std::cmp::Ordering::Equal, // Invalid entries stay at the end
-        }
-    });
+    app_dirs.sort_by(|a, b| crate::app_version::compare_app_dirs(a, b));
 
     for app in app_dirs {
         let app_dir = dir.join(app);

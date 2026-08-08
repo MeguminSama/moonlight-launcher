@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
+
 # Check if sudo is available
 if command -v sudo >/dev/null 2>&1; then
     PRIV_ESC="sudo"
@@ -8,6 +10,11 @@ elif command -v doas >/dev/null 2>&1; then
     PRIV_ESC="doas"
 else
     echo "Error: Neither sudo nor doas is installed. Please install one of them."
+    exit 1
+fi
+
+if ! command -v jq >/dev/null 2>&1; then
+    echo "Error: jq is not installed. Please install it (e.g. \`pacman -S jq\` or \`apt install jq\`)."
     exit 1
 fi
 
@@ -84,11 +91,11 @@ else
     BRANCH_UPPER=$(echo "$BRANCH" | awk '{print toupper(substr($0,1,1)) substr($0,2)}')
 fi
 
-LATEST_RELEASE=$(curl -s "https://api.github.com/repos/$GITHUB_ORG/$REPO_NAME/releases/latest")
+LATEST_RELEASE=$(curl -fsSL "https://api.github.com/repos/$GITHUB_ORG/$REPO_NAME/releases/latest")
 
-VERSION=$(echo "$LATEST_RELEASE" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+VERSION=$(echo "$LATEST_RELEASE" | jq -r '.tag_name')
 
-if [ -z "$VERSION" ]; then
+if [ -z "$VERSION" ] || [ "$VERSION" = "null" ]; then
     echo "Failed to fetch the latest release. Please try again or open an issue on GitHub."
     exit 1
 fi
@@ -97,39 +104,28 @@ ASSET_FILENAME="${ASSET_NAME}-${VERSION}.tar.gz"
 
 echo "Downloading moonlight $BRANCH $VERSION ($ASSET_FILENAME) from GitHub..."
 
-DOWNLOAD_URL=$(echo "$LATEST_RELEASE" | grep "browser_download_url" | grep "$ASSET_FILENAME" | cut -d '"' -f 4)
+DOWNLOAD_URL=$(echo "$LATEST_RELEASE" | jq -r --arg asset "$ASSET_FILENAME" \
+    '.assets[] | select(.name == $asset) | .browser_download_url')
 
-if [ -z "$DOWNLOAD_URL" ]; then
+if [ -z "$DOWNLOAD_URL" ] || [ "$DOWNLOAD_URL" = "null" ]; then
     echo "Failed to fetch the download URL. Please try again or open an issue on GitHub."
     exit 1
 fi
 
 TEMP_DIR=$(mktemp -d)
+trap 'rm -rf "$TEMP_DIR"' EXIT
 
-curl -L -o "$TEMP_DIR/$ASSET_FILENAME" "$DOWNLOAD_URL"
-
-if [ $? -eq 0 ]; then
-    echo "Download successful!"
-else
-    echo "Download failed. Please try again or open an issue on GitHub."
-    exit 1
-fi
+curl -fsSL -o "$TEMP_DIR/$ASSET_FILENAME" "$DOWNLOAD_URL"
+echo "Download successful!"
 
 tar -xzf "$TEMP_DIR/$ASSET_FILENAME" -C "$TEMP_DIR"
-
-if [ $? -eq 0 ]; then
-    echo "Extraction successful!"
-else
-    echo "Extraction failed. Please try again or open an issue on GitHub."
-    rm -r "$TEMP_DIR"
-    exit 1
-fi
+echo "Extraction successful!"
 
 echo "Installing moonlight $BRANCH $VERSION..."
 
 $PRIV_ESC install -Dm 755 "$TEMP_DIR/moonlight-$BRANCH" /usr/bin/
 
-OTHER_BRANCHES=$(ls /usr/bin | grep 'moonlight-' | grep -v "moonlight-$BRANCH")
+OTHER_BRANCHES=$(ls /usr/bin | grep 'moonlight-' | grep -v "moonlight-$BRANCH" || true)
 
 if [ -n "$OTHER_BRANCHES" ]; then
     # TODO: Maybe add a version flag to check if the other branches are outdated?
@@ -175,5 +171,3 @@ StartupWMClass=moonlight-$BRANCH"
 echo "$DESKTOP_ENTRY" | $PRIV_ESC tee "/usr/share/applications/$DESKTOP_ENTRY_FILENAME" > /dev/null
 
 echo "Desktop entry written to /usr/share/applications/$DESKTOP_ENTRY_FILENAME"
-
-rm -r "$TEMP_DIR"

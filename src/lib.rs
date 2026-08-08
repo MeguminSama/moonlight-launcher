@@ -1,6 +1,7 @@
 // For compiling the modloader DLL:
 pub use electron_hook::*;
 
+pub mod app_version;
 pub mod constants;
 pub mod discord;
 pub mod updater;
@@ -43,6 +44,19 @@ pub enum MoonlightBranch {
     Nightly,
 }
 
+fn show_error(title: &str, message: &str) {
+    #[cfg(not(windows))]
+    {
+        use dialog::DialogBox as _;
+        let _ = dialog::Message::new(message.to_string())
+            .title(title.to_string())
+            .show();
+    }
+
+    #[cfg(windows)]
+    messagebox(title, message, MessageBoxIcon::Error);
+}
+
 pub async fn launch(
     instance_id: &str,
     branch: DiscordBranch,
@@ -63,32 +77,49 @@ pub async fn launch(
 			Try reinstalling {display_name} and try again."
         );
 
-        #[cfg(not(windows))]
-        {
-            use dialog::DialogBox as _;
-            let _ = dialog::Message::new(message).title(title).show();
-        }
-
-        #[cfg(windows)]
-        messagebox(&title, &message, MessageBoxIcon::Error);
+        show_error(&title, &message);
 
         return;
     };
 
     let library_path = constants::get_library_path();
 
-    let assets_dir = constants::asset_cache_dir().unwrap();
+    let Some(assets_dir) = constants::asset_cache_dir() else {
+        show_error(
+            &format!("Failed to initialize {display_name}"),
+            "moonlight couldn't determine your data directory.",
+        );
+        return;
+    };
 
     // If `--local` is provided, use a local build. Otherwise, download assets.
     let mod_entrypoint = if let Some(local_path) = args.local {
         local_path
     } else {
-        // We can usually attempt to run Discord even if the downloads fail...
-        // TODO: Make this more robust. Maybe specific error reasons so we can determine if it's safe to continue.
-        let _ = updater::download_assets(moonlight_branch).await;
+        let entrypoint = assets_dir.join(constants::MOD_ENTRYPOINT);
 
-        assets_dir
-            .join(constants::MOD_ENTRYPOINT)
+        // We can usually attempt to run Discord even if the downloads fail, so
+        // fall back to the previous installation when one exists.
+        if let Err(e) = updater::download_assets(moonlight_branch).await {
+            eprintln!("[moonlight launcher] Failed to update moonlight: {e}");
+
+            if !entrypoint.exists() {
+                let title = format!("Failed to update {display_name}");
+                let message = format!(
+                    "moonlight couldn't download the latest version.\n\
+					You can try reinstalling {display_name} and try again.\n\n\
+					Error: {e}"
+                );
+
+                show_error(&title, &message);
+
+                return;
+            }
+
+            println!("[moonlight launcher] Using previous installation.");
+        }
+
+        entrypoint
             .to_string_lossy()
             .replace("\\", "\\\\")
             .to_string()
@@ -101,13 +132,22 @@ pub async fn launch(
         DiscordBranch::Development => "development",
     };
 
-    let asar = electron_hook::asar::Asar::new()
+    let asar = match electron_hook::asar::Asar::new()
         .with_id(instance_id)
         .with_mod_entrypoint(&mod_entrypoint)
         .with_template(include_str!("./require.js"))
         .with_wm_class(&format!("moonlight-{branch_name}"))
         .create()
-        .unwrap();
+    {
+        Ok(asar) => asar,
+        Err(e) => {
+            show_error(
+                &format!("Failed to launch {display_name}"),
+                &format!("moonlight couldn't create its launcher files.\n\nError: {e}"),
+            );
+            return;
+        }
+    };
 
     let asar_path = asar.to_string_lossy().to_string();
 
@@ -115,19 +155,33 @@ pub async fn launch(
         DiscordPath::Filesystem(discord_dir) => {
             let discord_dir = discord_dir.to_string_lossy().to_string();
 
-            electron_hook::launch(
+            if let Err(e) = electron_hook::launch(
                 &discord_dir,
                 &library_path,
                 &asar_path,
                 args.launch_args,
                 false,
-            )
-            .unwrap();
+            ) {
+                show_error(
+                    &format!("Failed to launch {display_name}"),
+                    &format!("moonlight couldn't start Discord.\n\nError: {e}"),
+                );
+            }
         }
         #[cfg(target_os = "linux")]
         DiscordPath::FlatpakId(id) => {
-            electron_hook::launch_flatpak(&id, &library_path, &asar_path, args.launch_args, false)
-                .unwrap();
+            if let Err(e) = electron_hook::launch_flatpak(
+                &id,
+                &library_path,
+                &asar_path,
+                args.launch_args,
+                false,
+            ) {
+                show_error(
+                    &format!("Failed to launch {display_name}"),
+                    &format!("moonlight couldn't start Discord.\n\nError: {e}"),
+                );
+            }
         }
         #[cfg(not(target_os = "linux"))]
         DiscordPath::FlatpakId(_) => {
