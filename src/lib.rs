@@ -136,7 +136,7 @@ pub async fn launch(
         .with_id(instance_id)
         .with_mod_entrypoint(&mod_entrypoint)
         .with_template(include_str!("./require.js"))
-        .with_wm_class(&format!("moonlight-{branch_name}"))
+        .with_wm_class(&format!("moonlight"))
         .create()
     {
         Ok(asar) => asar,
