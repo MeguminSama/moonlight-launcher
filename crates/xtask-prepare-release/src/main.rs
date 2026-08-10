@@ -33,30 +33,43 @@ fn main() -> io::Result<()> {
 
     #[cfg(windows)]
     {
-        let workspace_root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        let workspace_root = workspace_root.ancestors().nth(2).unwrap().to_path_buf();
-
-        let installers_dir = workspace_root.join("installers");
-        let nsis_dir = installers_dir.join("NSIS");
-
-        let product_version = launcher_version(&workspace_root)?;
-
-        Command::new("makensis.exe")
-            .current_dir(&nsis_dir)
-            .arg(format!("-DPRODUCT_VERSION={product_version}"))
-            .arg("installer.nsi")
-            .status()?;
-
-        std::fs::create_dir_all(workspace_root.join("target").join("dist"))?;
-
-        std::fs::copy(
-            nsis_dir.join("moonlight installer.exe"),
-            workspace_root
-                .join("target")
-                .join("release")
-                .join("moonlight installer.exe"),
-        )?;
+        if let Err(e) = run_nsis_build() {
+            if e.kind() == io::ErrorKind::NotFound {
+                eprintln!("warning: makensis.exe not found.");
+            } else {
+                return Err(e);
+            }
+        }
     }
+
+    Ok(())
+}
+
+#[cfg(windows)]
+fn run_nsis_build() -> io::Result<()> {
+    let workspace_root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    let workspace_root = workspace_root.ancestors().nth(2).unwrap().to_path_buf();
+
+    let installers_dir = workspace_root.join("installers");
+    let nsis_dir = installers_dir.join("NSIS");
+
+    let product_version = launcher_version(&workspace_root)?;
+
+    Command::new("makensis.exe")
+        .current_dir(&nsis_dir)
+        .arg(format!("-DPRODUCT_VERSION={product_version}"))
+        .arg("installer.nsi")
+        .status()?;
+
+    std::fs::create_dir_all(workspace_root.join("target").join("dist"))?;
+
+    std::fs::copy(
+        nsis_dir.join("moonlight installer.exe"),
+        workspace_root
+            .join("target")
+            .join("release")
+            .join("moonlight installer.exe"),
+    )?;
 
     Ok(())
 }
