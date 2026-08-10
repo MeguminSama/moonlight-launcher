@@ -21,6 +21,20 @@ if (process.env.MODLOADER_EXECUTABLE) {
   };
 }
 
+// Electron sets the UA to include the app name, which in this case is "moonlight".
+// So we need to overwrite the UA to say "discord" instead.
+{
+  const { session } = require("electron");
+
+  app.on('ready', () => {
+    const ua = session.defaultSession.getUserAgent();
+    const cleanUA = ua
+      .replace("moonlight", "discord")
+      .replace("Moonlight", "Discord");
+    session.defaultSession.setUserAgent(cleanUA);
+  });
+}
+
 // discord will try to set the name to `discord-{branch}` so we intercept that and change it to `moonlight-{branch}` so that the wm_class is correct
 {
   const _setName = app.setName;
