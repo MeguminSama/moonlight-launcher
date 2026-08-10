@@ -125,13 +125,6 @@ pub async fn launch(
             .to_string()
     };
 
-    let branch_name = match branch {
-        DiscordBranch::Stable => "stable",
-        DiscordBranch::PTB => "ptb",
-        DiscordBranch::Canary => "canary",
-        DiscordBranch::Development => "development",
-    };
-
     let asar = match electron_hook::asar::Asar::new()
         .with_id(instance_id)
         .with_mod_entrypoint(&mod_entrypoint)
